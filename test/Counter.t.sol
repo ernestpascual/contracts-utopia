@@ -2,23 +2,30 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Counter} from "../src/Counter.sol";
+import {Donation} from "../src/Donation.sol";
+import "forge-std/console2.sol";
 
-contract CounterTest is Test {
-    Counter public counter;
+contract DonationTest is Test {
+    Donation public donation;
+
+    address user;
+    uint256 initalEtherBalance = 100 ether;
 
     function setUp() public {
-        counter = new Counter();
-        counter.setNumber(0);
+        donation = new Donation();
+        vm.deal(user, initalEtherBalance);
     }
 
-    function test_Increment() public {
-        counter.increment();
-        assertEq(counter.number(), 1);
-    }
+    // test function
+    function testReceiveDonation() public {
+        uint256 etherToDonate = 1 ether;
+        vm.startPrank(user);
 
-    function testFuzz_SetNumber(uint256 x) public {
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
+        donation.receiveDonation{value: etherToDonate}();
+        assertEq(initalEtherBalance - etherToDonate, user.balance);
+        assertEq(donation.donationInfo(user), etherToDonate);
+        assertEq(address(donation.donators(0)), user);
+
+        vm.stopPrank();
     }
 }
